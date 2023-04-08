@@ -18,11 +18,11 @@ class RandomAI:
         self.set_game_state(state)
         possible_moves = self.possible_path()
         if len(possible_moves) > 0:
-            self.move_to_play = possible_moves[random.randint(0,len(possible_moves))]
+            self.move_to_play = possible_moves[random.randint(0,len(possible_moves)-1)]
         else:
             self.move_to_play = self.position
         gates = self.not_affecting_random_gates(self.move_to_play, self.position)
-        self.gate_to_play = gates[random.randint(0,len(gates))] 
+        self.gate_to_play = gates[random.randint(0,len(gates)-1)] 
         self.tile_to_play = state["tile"]
         return self.create_server_response()
 
@@ -199,8 +199,8 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 
 player1 = RandomAI("sam", 8888, "20053")
 player2 = RandomAI("ammar", 8889, "1010")
+player1.play(state)
 
-
-thread = threading.Thread(target=player1.connect_to_server, daemon=True)
-thread.start()
-player2.connect_to_server()
+#thread = threading.Thread(target=player1.connect_to_server, daemon=True)
+#thread.start()
+#player2.connect_to_server()
