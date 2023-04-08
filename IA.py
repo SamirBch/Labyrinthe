@@ -14,6 +14,7 @@ class RandomAI:
         self.port = port
         self.matricule = matricule
         self.send_subscribe_request_to_server()
+        self.connect_to_server()
 
     def play(self, state):
         self.set_game_state(state)
@@ -137,13 +138,46 @@ class RandomAI:
         'request': 'subscribe',
         'port': self.port,
         'name': self.name,
-        'matricules': [self.matricule],
+        'matricules': [self.matricule,"1"],
         }
         request = json.dumps(request)
         s.send(request.encode())
         s.close()
         print("subscribe request sended")
 
+
+    def receveid(self, jsonFile):
+        data = json.loads(jsonFile)
+        print(type(data),data)
+        if data["request"] == "ping":
+            return True
+        else:
+            return False 
+        
+
+    def connect_to_server(self):
+        s2 = socket.socket()
+        s2.bind(('localhost', self.port ))
+        s2.listen()
+
+
+        while True:
+                con, addr = s2.accept()
+                d = con.recv(4096).decode()
+                print(d)
+                pong = json.dumps(
+                    {
+                        "response": "pong",
+                    }
+                ).encode()
+                print("Sending pong")
+                if self.receveid(d):    
+                    total = 0
+                    while total < len(pong):
+                        sent = con.send(pong[total:])
+                        total += sent
+                    print('sended')
+                    
 
 
 board =  [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": False, "item": 16}, {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 18}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 2}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 3}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 4}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 5}, {"N": True, "E": False, "S": False, "W": True, "item": 
@@ -164,5 +198,5 @@ True, "item": 5}, {"N": False, "E": True, "S": False, "W": True, "item": None}, 
 False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True, 
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
-player = RandomAI("sam", 8888, 20053)
+player = RandomAI("sam", 8888, "20053")
 print(player.play(state))
