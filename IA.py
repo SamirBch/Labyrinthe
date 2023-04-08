@@ -1,4 +1,4 @@
-import random, json
+import random, json, socket
 
 class RandomAI:
     board = None
@@ -9,9 +9,11 @@ class RandomAI:
     gate_to_play = None
     tile_to_play = None
     
-    def __init__(self, name, port):
+    def __init__(self, name, port, matricule):
         self.name = name
         self.port = port
+        self.matricule = matricule
+        self.send_subscribe_request_to_server()
 
     def play(self, state):
         self.set_game_state(state)
@@ -127,6 +129,20 @@ class RandomAI:
                 gates.append(key)
         return gates       
 
+    def send_subscribe_request_to_server(self):
+        s = socket.socket()
+        address = ('localhost', 3000)
+        s.connect(address)
+        request = {
+        'request': 'subscribe',
+        'port': self.port,
+        'name': self.name,
+        'matricules': [self.matricule],
+        }
+        request = json.dumps(request)
+        s.send(request.encode())
+        s.close()
+        print("subscribe request sended")
 
 
 
@@ -148,5 +164,5 @@ True, "item": 5}, {"N": False, "E": True, "S": False, "W": True, "item": None}, 
 False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True, 
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
-player = RandomAI("sam", 8888)
+player = RandomAI("sam", 8888, 20053)
 print(player.play(state))
