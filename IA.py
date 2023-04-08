@@ -1,4 +1,4 @@
-import random, json, socket
+import random, json, socket, threading
 
 class RandomAI:
     board = None
@@ -13,8 +13,6 @@ class RandomAI:
         self.name = name
         self.port = port
         self.matricule = matricule
-        self.send_subscribe_request_to_server()
-        self.connect_to_server()
 
     def play(self, state):
         self.set_game_state(state)
@@ -156,6 +154,7 @@ class RandomAI:
         
 
     def connect_to_server(self):
+        self.send_subscribe_request_to_server()
         s2 = socket.socket()
         s2.bind(('localhost', self.port ))
         s2.listen()
@@ -198,5 +197,10 @@ True, "item": 5}, {"N": False, "E": True, "S": False, "W": True, "item": None}, 
 False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True, 
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
-player = RandomAI("sam", 8888, "20053")
-print(player.play(state))
+player1 = RandomAI("sam", 8888, "20053")
+player2 = RandomAI("ammar", 8889, "1010")
+
+
+thread = threading.Thread(target=player1.connect_to_server, daemon=True)
+thread.start()
+player2.connect_to_server()
