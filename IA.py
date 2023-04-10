@@ -1,4 +1,6 @@
-import random, json, socket, threading
+import random, json, socket, threading, logging
+
+logging.basicConfig(level=logging.INFO)
 
 class ServerAI:
     game_server = None
@@ -22,8 +24,8 @@ class ServerAI:
         request = self.get_subscribe_request()
         s.send(request.encode())
         s.close()
-        print("subscribe request sended")
-    
+        logging.info("Player %s: Subscribe request sended", self.player_name)
+
     def get_subscribe_request(self):
         request = {
         'request': 'subscribe',
@@ -47,24 +49,25 @@ class ServerAI:
         while total < len(response):
             sent = connection.send(response[total:])
             total += sent
-            print('sended')    
+        logging.info("Player %s: response send to %s", self.player_name, self.game_server)    
 
     def run_server_AI(self):
         self.send_subscribe_request_to_server()
         s2 = socket.socket()
         s2.bind((self.server_AI_adress, self.server_AI_port))
         s2.listen()
+        logging.info("Player %s: listening on port %s", self.player_name, self.server_AI_port)
     
         while True:
                 con, addr = s2.accept()
                 d = con.recv(4096).decode()
                 request_type = self.get_request_type(d)
+                logging.info("Player %s: got request %s", self.player_name, request_type)
                 if request_type == "ping":
                     response = self.get_ping_response()
                     self.send_response(con, response)
                 elif request_type == "play":
                     print("play")    
-
 
 
 
