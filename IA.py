@@ -8,6 +8,7 @@ class ServerAI:
     server_AI_adress = None
     player_name = None
     player_matricule = None
+    AI = None
     
 
     def __init__(self, game_server, server_AI_port, server_AI_adress, player_name, player_matricule):
@@ -16,6 +17,7 @@ class ServerAI:
         self.server_AI_adress = server_AI_adress
         self.player_name = player_name
         self.player_matricule = player_matricule
+        self.AI = RandomAI()
 
         
     def send_subscribe_request_to_server(self):
@@ -36,9 +38,9 @@ class ServerAI:
         request = json.dumps(request)
         return request
     
-    def get_request_type(self, jsonFile):
+    def convert_to_dict(self, jsonFile):
         data = json.loads(jsonFile)
-        return data["request"]
+        return data
     
     def get_ping_response(self):
          response = json.dumps({"response": "pong",}).encode()
@@ -50,6 +52,23 @@ class ServerAI:
             sent = connection.send(response[total:])
             total += sent
         logging.info("Player %s: response send to %s", self.player_name, self.game_server)    
+    
+    def get_response(self,connection):
+        connection.settimeout(0.1)
+        chunks = []
+        finished = False
+        while not finished:
+            try:
+                data = connection.recv(4096)
+                chunks.append(data)
+                finished = data == b''
+            except socket.timeout:
+                break
+        return b''.join(chunks).decode() 
+
+    def get_move_response(self, AI_move):
+         response = json.dumps({"response": "move", "move": AI_move, "message": "i will win"}).encode()
+         return response
 
     def run_server_AI(self):
         self.send_subscribe_request_to_server()
@@ -60,28 +79,22 @@ class ServerAI:
     
         while True:
                 con, addr = s2.accept()
-                d = con.recv(4096).decode()
-                request_type = self.get_request_type(d)
-                logging.info("Player %s: got request %s", self.player_name, request_type)
-                if request_type == "ping":
+                #d = con.recv(4096).decode()
+                d = self.get_response(con)
+                request = self.convert_to_dict(d)
+                logging.info("Player %s: got request %s", self.player_name, request["request"])
+                if request["request"] == "ping":
                     response = self.get_ping_response()
                     self.send_response(con, response)
-                elif request_type == "play":
-                    print("play")    
+                elif request["request"] == "play":
+                    AI_move = self.AI.play(request["state"])
+                    response = self.get_move_response(AI_move)
+                    print("Ai move = ",AI_move)
+                    self.send_response(con, response)
+            
+                
 
-
-
-
-
-
-
-
-
-
-
-
-
-class RandomAI:
+class RandomAI: 
     board = None
     position = None
     target = None
@@ -89,11 +102,7 @@ class RandomAI:
     move_to_play = None
     gate_to_play = None
     tile_to_play = None
-    
-    def __init__(self, name, port, matricule):
-        self.name = name
-        self.port = port
-        self.matricule = matricule
+
 
     def play(self, state):
         self.set_game_state(state)
@@ -109,11 +118,11 @@ class RandomAI:
 
     def create_server_response(self):
         response = {
-            'tile': self.tile_to_play,
-            'gate': self.gate_to_play,
-            'new_position': self.move_to_play,
+            "tile": self.tile_to_play,
+            "gate": self.gate_to_play,
+            "new_position": self.move_to_play,
          }
-        response = json.dumps(response)
+        #response = json.dumps(response)
         return response
 
     
@@ -209,8 +218,7 @@ class RandomAI:
                 gates.append(key)
         return gates       
 
-
-
+"""
 board =  [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": False, "item": 16}, {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 18}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 2}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 3}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 4}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 5}, {"N": True, "E": False, "S": False, "W": True, "item": 
     12}, {"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 13}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 23}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 6}, {"N": True, "E": True, "S": True, "W": False, "item": 21}, {"N": True, "E": True, "S": False, "W": True, "item": 7}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 8}, {"N": True, "E": True, "S": False, "W": True, "item": 19}, {"N": True, "E": False, "S": True, "W": True, "item": 9}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": 14}, {"N": False, "E": 
     True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 20}, {"N": False, "E": False, "S": True, "W": True, "item": 17}, {"N": 
@@ -228,15 +236,11 @@ True, "item": 5}, {"N": False, "E": True, "S": False, "W": True, "item": None}, 
 "W": False, "item": 14}, {"N": True, "E": True, "S": False, "W": True, "item": 7}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 8}, {"N": True, "E": True, "S": 
 False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True, 
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
+"""
 
-#player1 = RandomAI("sam", 8888, "20053")
-#player2 = RandomAI("ammar", 8889, "1010")
-#print(player1.play(state))
+player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", 20053)
+player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", 0000)
+thread = threading.Thread(target=player1.run_server_AI, daemon=True)
+thread.start()
+player2.run_server_AI()
 
-#thread = threading.Thread(target=player1.connect_to_server, daemon=True)
-#thread.start()
-#player2.connect_to_server()
-
-
-server = ServerAI(("localhost", 3000), 8888, "localhost", "samir", 20053)
-server.run_server_AI()
