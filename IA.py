@@ -218,8 +218,44 @@ class RandomAI:
                 gates.append(key)
         return gates       
 
+
+
+
+class AI:
+    board = None
+    position = 0
+    Target = 0
+
+
+    def __init__(self, board):
+        self.board = board
+
+
+
+    def play(self):
+        possible_moves = self.possible_path()    
+    
+
+
+    def possible_path(self):
+        tuile = self.board[self.position]
+        exits = self.exit_gate(tuile)
+   
+        neighbors = self.get_neighbors(self.position)
+        neighbors = self.available_neighbors(neighbors,exits)
+        neighbor_information = []
+        for neighbor in neighbors:
+            neighbor_tuile = self.board[neighbor[1]]
+            neighbor_information.append((neighbor[0],neighbor[1],neighbor_tuile))
+        possible_moves = []
+        for info in neighbor_information:
+            opposite_direction = self.get_opposite_direction(info[0])
+            if info[2][opposite_direction]:
+                possible_moves.append(info[1])     
+        return possible_moves
+
 """
-board =  [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
+board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
         {"N": True, "E": True, "S": True, "W": False, "item": 2}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 3}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 4}, {"N": False, "E": True, "S": True, "W": True, "item": 23}, {"N": True, "E": False, "S": True, "W": True, "item": 5},
         {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 22}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": 17}, {"N": True, "E": False, "S": False, "W": True, "item": None},
