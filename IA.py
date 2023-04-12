@@ -2,6 +2,20 @@ import random, json, socket, threading, logging
 
 logging.basicConfig(level=logging.INFO)
 
+class Queue:
+	def __init__(self):
+		self.data = []
+
+	def enqueue(self, value):
+		self.data.append(value)
+
+	def dequeue(self):
+		return self.data.pop(0)
+
+	def isEmpty(self):
+		return len(self.data) == 0
+
+
 class ServerAI:
     game_server = None
     server_AI_port = None
@@ -133,30 +147,30 @@ class RandomAI:
         self.tile = state["tile"]
 
     
-
-
     def get_neighbors(self, position):
         neighbors = []
         if position == 0 :
-            neighbors = [('E',position + 1), ('S',position + 7)]        
+            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
         elif position > 0 and position < 6 :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7)]
+            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
         elif position > 42 and position < 48 :
-            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7)]
+            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
         elif position == 6 :
-            neighbors = [('W',position - 1), ('S',position + 7)]
+            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
         elif position == 42 :
-            neighbors = [('E',position + 1), ('N',position - 7)]
+            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
         elif position == 48:
-            neighbors = [('E',position - 1),('N', position - 7)]    
+            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
         elif position %7 == 0 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7)]   
+            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
         elif position + 1 %7 == 0 :
-            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1)]
+            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
         
         return neighbors
+
+   
 
     def available_neighbors(self,neighbors, exit_directions):
         available_neighbors = []
@@ -224,24 +238,22 @@ class RandomAI:
 class AI:
     board = None
     position = 0
-    Target = 0
+    target = 48
 
 
     def __init__(self, board):
         self.board = board
 
-
-
     def play(self):
-        possible_moves = self.possible_path()    
+        achievable_positions = self.BFS(self.position, self.target)
+        print(achievable_positions) 
+           
     
-
-
-    def possible_path(self):
-        tuile = self.board[self.position]
+    def possible_path(self, position):
+        tuile = self.board[position]
         exits = self.exit_gate(tuile)
    
-        neighbors = self.get_neighbors(self.position)
+        neighbors = self.get_neighbors(position)
         neighbors = self.available_neighbors(neighbors,exits)
         neighbor_information = []
         for neighbor in neighbors:
@@ -253,8 +265,73 @@ class AI:
             if info[2][opposite_direction]:
                 possible_moves.append(info[1])     
         return possible_moves
+    
+    def get_neighbors(self, position):
+        neighbors = []
+        if position == 0 :
+            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
+        elif position > 0 and position < 6 :
+            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
+        elif position > 42 and position < 48 :
+            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
+        elif position == 6 :
+            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
+        elif position == 42 :
+            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
+        elif position == 48:
+            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
+        elif position %7 == 0 :
+            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
+        elif position + 1 %7 == 0 :
+            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
+        else :
+            neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
+        
+        return neighbors
 
-"""
+    def available_neighbors(self,neighbors, exit_directions):
+        available_neighbors = []
+        for neighbor in neighbors:
+            if neighbor[0] in exit_directions:                     
+                available_neighbors.append(neighbor)
+
+        return available_neighbors 
+
+    def get_opposite_direction(self,direction):
+        if direction == "N":
+            return "S"
+        elif direction == "S":
+            return "N"
+        elif direction == "E":
+            return "W"
+        else:
+            return "E"  
+
+    def exit_gate(self,tuile):
+        exits = []
+        for direction in ["N", "E", "S", "W"]:
+            if tuile[direction]:
+                exits.append(direction)
+        return exits
+
+    def BFS(self, start_position, target):
+        agenda = Queue()
+        achievable_positions  = []
+        agenda.enqueue(start_position)
+        while not agenda.isEmpty():
+            node = agenda.dequeue()
+            achievable_positions.append(node)
+            if node==target:
+                break
+            neighbor_positions = self.possible_path(node)
+            for neighbor_position in neighbor_positions:
+                if neighbor_position not in achievable_positions:
+                    #achievable_positions.append(neighbor_position)
+                    agenda.enqueue(neighbor_position)
+        return achievable_positions        
+
+
+
 board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
         {"N": True, "E": True, "S": True, "W": False, "item": 2}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 3}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 4}, {"N": False, "E": True, "S": True, "W": True, "item": 23}, {"N": True, "E": False, "S": True, "W": True, "item": 5},
@@ -274,11 +351,16 @@ True, "item": 5}, {"N": False, "E": True, "S": False, "W": True, "item": None}, 
 "W": False, "item": 14}, {"N": True, "E": True, "S": False, "W": True, "item": 7}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": True, "item": 8}, {"N": True, "E": True, "S": 
 False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True, 
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
-"""
 
+
+
+player3 = AI(board)
+player3.play()
+
+'''
 player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", 20053)
 player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", 0000)
 thread = threading.Thread(target=player1.run_server_AI, daemon=True)
 thread.start()
 player2.run_server_AI()
-
+'''
