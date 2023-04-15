@@ -241,24 +241,47 @@ class RandomAI:
 
 class AI:
     board = None
-    position = 21
-    target = 20
+    position = 40
+    target = 10
+    achievable_positions = None
+    path_to_target = None
+    tile = None
+    move_to_play = None
+    gate_to_play = None
+    tile_to_play = None
 
 
     def __init__(self, board):
         self.board = board
 
-    def play(self):
-        achievable_positions = self.BFS(self.position, self.target)
-        if self.is_target_found(achievable_positions):
-            path = self.get_path(achievable_positions)
-            gates = self.not_affecting_random_gates(path)
-            print(gates)
-        else :
-            path = None    
-        print(path)
+    def play(self, state):
+        #self.set_game_state(state)
+        self.achievable_positions = self.BFS(self.position, self.target)
+        if self.is_target_found():
+            self.path_to_target = self.get_path()
+            gates = self.not_affecting_random_gates(self.path_to_target)
+            if len(gates) != 0:
+                self.move_to_play = self.path_to_target[0]
+                self.gate_to_play = gates[random.randint(0,len(gates)-1)]
+            else:
+                self.move_to_play = self.get_random_move()
+                gates = self.not_affecting_random_gates([self.move_to_play])
+                self.gate_to_play = gates[random.randint(0,len(gates)-1)]
+        else:
+            self.move_to_play = self.get_random_move()
+            gates = self.not_affecting_random_gates([self.move_to_play])
+            self.gate_to_play = gates[random.randint(0,len(gates)-1)]
         
-    
+        self.tile_to_play = self.tile
+        return self.create_server_response()
+
+        
+    def set_game_state(self, state):
+        self.board = state["board"]
+        self.position = state["positions"][state["current"]]
+        self.target = state["target"]
+        self.tile = state["tile"]
+
     def possible_path(self, position):
         tuile = self.board[position]
         exits = self.exit_gate(tuile)
@@ -347,8 +370,8 @@ class AI:
                 return True
         return False
 
-    def is_target_found(self, achievable_positions):
-        return len(achievable_positions) != 0 and achievable_positions[-1][0] == self.target
+    def is_target_found(self):
+        return len(self.achievable_positions) != 0 and self.achievable_positions[-1][0] == self.target
         
     def get_parent(self, node):               
         return node[1]
@@ -358,13 +381,13 @@ class AI:
             if node[0] == parent:
                 return node
 
-    def get_path(self, achievable_positions):
+    def get_path(self):
         path = []
-        node = achievable_positions[-1]
+        node = self.achievable_positions[-1]
         while node[1] != self.position:
             path.append(node[0])
             parent = self.get_parent(node)
-            node = self.get_parent_node(parent, achievable_positions)
+            node = self.get_parent_node(parent, self.achievable_positions)
         path.append(node[0])
         path.append(node[1])
         return path    
@@ -387,6 +410,27 @@ class AI:
     def intersection(self, list1, list2):
         list3 = [value for value in list1 if value in list2]
         return list3
+
+    def create_server_response(self):
+        response = {
+            "tile": self.tile_to_play,
+            "gate": self.gate_to_play,
+            "new_position": self.move_to_play,
+         }
+        #response = json.dumps(response)
+        return response
+
+
+    def get_random_move(self):
+        random_moves = self.possible_path(self.position)
+        if len(random_moves) != 0:
+            return random_moves[random.randint(0,len(random_moves)-1)]
+        return self.position
+
+
+
+
+
 
 board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
@@ -411,7 +455,7 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 
 
 player3 = AI(board)
-player3.play()
+print(player3.play("state"))
 
 '''
 player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", 20053)
