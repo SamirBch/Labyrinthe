@@ -238,7 +238,6 @@ class RandomAI:
 
 
 
-
 class AI:
     board = None
     position = 40
@@ -255,7 +254,7 @@ class AI:
         self.board = board
 
     def play(self, state):
-        #self.set_game_state(state)
+        self.set_game_state(state)
         self.achievable_positions = self.BFS(self.position, self.target)
         if self.is_target_found():
             self.path_to_target = self.get_path()
@@ -279,8 +278,16 @@ class AI:
     def set_game_state(self, state):
         self.board = state["board"]
         self.position = state["positions"][state["current"]]
-        self.target = state["target"]
+        self.target = self.set_target(state["target"])
         self.tile = state["tile"]
+
+    def set_target(self, item):
+        index = 0
+        for i in range(0, len(self.board)-1):
+            if self.board[i]["item"] == item:
+                index = i
+                break
+        return index    
 
     def possible_path(self, position):
         tuile = self.board[position]
