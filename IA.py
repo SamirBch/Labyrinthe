@@ -3,17 +3,21 @@ import random, json, socket, threading, logging
 logging.basicConfig(level=logging.INFO)
 
 class Queue:
-	def __init__(self):
-		self.data = []
+    def __init__(self):
+        self.data = []
 
-	def enqueue(self, value):
-		self.data.append(value)
+    def enqueue(self, value):
+        self.data.append(value)
 
-	def dequeue(self):
-		return self.data.pop(0)
+    def dequeue(self):
+        return self.data.pop(0)
 
-	def isEmpty(self):
-		return len(self.data) == 0
+    def isEmpty(self):
+        return len(self.data) == 0
+    
+    def clear_queue(self):
+        self.data = []
+        
 
 
 class ServerAI:
@@ -163,7 +167,7 @@ class RandomAI:
             neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
         elif position %7 == 0 :
             neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
-        elif position + 1 %7 == 0 :
+        elif (position + 1) %7 == 0 :
             neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
@@ -237,8 +241,8 @@ class RandomAI:
 
 class AI:
     board = None
-    position = 0
-    target = 48
+    position = 21
+    target = 20
 
 
     def __init__(self, board):
@@ -246,8 +250,14 @@ class AI:
 
     def play(self):
         achievable_positions = self.BFS(self.position, self.target)
-        print(achievable_positions) 
-           
+        if self.is_target_found(achievable_positions):
+            path = self.get_path(achievable_positions)
+            gates = self.not_affecting_random_gates(path)
+            print(gates)
+        else :
+            path = None    
+        print(path)
+        
     
     def possible_path(self, position):
         tuile = self.board[position]
@@ -282,11 +292,10 @@ class AI:
             neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
         elif position %7 == 0 :
             neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
-        elif position + 1 %7 == 0 :
+        elif (position + 1) %7 == 0 :
             neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
         else :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
-        
+            neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]   
         return neighbors
 
     def available_neighbors(self,neighbors, exit_directions):
@@ -318,19 +327,66 @@ class AI:
         agenda = Queue()
         achievable_positions  = []
         agenda.enqueue(start_position)
+        if start_position == target:
+            return [(start_position, start_position)]
         while not agenda.isEmpty():
-            node = agenda.dequeue()
-            achievable_positions.append(node)
-            if node==target:
-                break
+            node = agenda.dequeue() 
             neighbor_positions = self.possible_path(node)
             for neighbor_position in neighbor_positions:
-                if neighbor_position not in achievable_positions:
-                    #achievable_positions.append(neighbor_position)
+                if not self.positions_in_achievable_positions(neighbor_position, achievable_positions):
                     agenda.enqueue(neighbor_position)
+                    achievable_positions.append((neighbor_position, node))
+                    if neighbor_position == target:
+                        agenda.clear_queue()
+                        break           
         return achievable_positions        
+        
+    def positions_in_achievable_positions(self, position, achievable_positions):
+        for achievable_position in achievable_positions:
+            if position == achievable_position[0] or position == achievable_position[1]:
+                return True
+        return False
 
+    def is_target_found(self, achievable_positions):
+        return len(achievable_positions) != 0 and achievable_positions[-1][0] == self.target
+        
+    def get_parent(self, node):               
+        return node[1]
 
+    def get_parent_node(self, parent, achievable_positions):
+        for node in achievable_positions:
+            if node[0] == parent:
+                return node
+
+    def get_path(self, achievable_positions):
+        path = []
+        node = achievable_positions[-1]
+        while node[1] != self.position:
+            path.append(node[0])
+            parent = self.get_parent(node)
+            node = self.get_parent_node(parent, achievable_positions)
+        path.append(node[0])
+        path.append(node[1])
+        return path    
+    
+    def not_affecting_random_gates(self, path):
+        dico = {
+            "A" : [1, 8, 15, 22 , 29, 36, 43],
+            "B" : [3, 10, 17, 24, 31, 38, 45],
+            "C" : [5, 12, 19, 26, 33, 40, 47],
+            "L" : [7, 8, 9, 10, 11, 12, 13],
+            "K" : [21, 22, 23, 24, 25, 26, 27],
+            "J" : [35, 36, 37, 38, 39, 40, 41]
+        }
+        gates = []
+        for key, value in dico.items():
+            if len(self.intersection(value, path)) == 0:
+                gates.append(key)
+        return gates       
+
+    def intersection(self, list1, list2):
+        list3 = [value for value in list1 if value in list2]
+        return list3
 
 board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
