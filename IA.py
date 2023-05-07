@@ -1,4 +1,4 @@
-import random, json, socket, threading, logging
+import random, json, socket, logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -494,10 +494,3 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 
 #player3 = AI(board)
 #print(player3.play("state"))
-
-
-player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", "20053", False)
-player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", "0000", True)
-thread = threading.Thread(target=player2.run_server_AI, daemon=True)
-thread.start()
-player1.run_server_AI()
