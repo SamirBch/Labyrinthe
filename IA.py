@@ -192,26 +192,25 @@ class RandomAI:
     def get_neighbors(self, position):
         neighbors = []
         if position == 0 :
-            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
+            neighbors = [('E',position + 1), ('S',position + 7)]        
         elif position > 0 and position < 6 :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
+            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7)]
         elif position > 42 and position < 48 :
-            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
+            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7)]
         elif position == 6 :
-            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
+            neighbors = [('W',position - 1), ('S',position + 7)]
         elif position == 42 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
+            neighbors = [('E',position + 1), ('N',position - 7)]
         elif position == 48:
-            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
+            neighbors = [('E',position - 1),('N', position - 7)]    
         elif position %7 == 0 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
-        elif (position + 1) %7 == 0 :
-            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
+            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7)]   
+        elif position + 1 %7 == 0 :
+            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
-        
-        return neighbors
 
+        return neighbors
    
 
     def available_neighbors(self,neighbors, exit_directions):
@@ -464,27 +463,27 @@ class AI:
     def get_neighbors(self, position):
         neighbors = []
         if position == 0 :
-            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
+            neighbors = [('E',position + 1), ('S',position + 7)]        
         elif position > 0 and position < 6 :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
+            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7)]
         elif position > 42 and position < 48 :
-            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
+            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7)]
         elif position == 6 :
-            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
+            neighbors = [('W',position - 1), ('S',position + 7)]
         elif position == 42 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
+            neighbors = [('E',position + 1), ('N',position - 7)]
         elif position == 48:
-            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
+            neighbors = [('E',position - 1),('N', position - 7)]    
         elif position %7 == 0 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
-        elif (position + 1) %7 == 0 :
-            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
+            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7)]   
+        elif position + 1 %7 == 0 :
+            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
-        
+
         return neighbors
 
-
+   
 
 board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
@@ -507,16 +506,6 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
 
-boardTest = [
-    {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 0}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 1}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None},
-    {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': 13}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 20}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': 12}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 19},
-    {'N': True, 'E': True, 'S': True, 'W': False, 'item': 2}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 3}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 4}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 5}, 
-    {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 16}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 22}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 14}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None},
-    {'N': True, 'E': True, 'S': True, 'W': False, 'item': 6}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 7}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 8}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 9}, 
-    {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 23}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 15}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 17}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, 
-    {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 10}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 18}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 11}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}]
-
-
 
 
 #player3 = AI(boardTest)
@@ -524,7 +513,7 @@ boardTest = [
 
 
 player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", "20053", False)
-player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", "0000", False)
+player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", "0000", True)
 thread = threading.Thread(target=player2.run_server_AI, daemon=True)
 thread.start()
 player1.run_server_AI()
