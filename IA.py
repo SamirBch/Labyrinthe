@@ -75,24 +75,7 @@ class ServerAI:
             sent = connection.send(response[total:])
             total += sent
         logging.info("Player %s: response send to %s", self.player_name, self.game_server)    
-    """
-    def get_response(self,connection): 
-        chunks = []
-        finished = False
-        
-        while not finished:
-            data = connection.recv(1024)
-            chunks.append(data)
-            
-            try:
-                json_text = json.loads(b''.join(chunks).decode() )
-                finished = True
-            except:
-                # json invalide, on continue
-                pass
-            print(json_text)
-        return json_text 
-    """    
+   
     def get_response(self,connection):
         connection.settimeout(0.1)
         chunks = b''
@@ -205,7 +188,7 @@ class RandomAI:
             neighbors = [('E',position - 1),('N', position - 7)]    
         elif position %7 == 0 :
             neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7)]   
-        elif position + 1 %7 == 0 :
+        elif (position + 1) %7 == 0 :
             neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
@@ -319,6 +302,7 @@ class AI:
         print("target: ", self.target)
         print("path to target: ", self.path_to_target)
         print("board :", self.board)
+        print("achievable :", self.achievable_positions)
         return res
 
         
@@ -476,7 +460,7 @@ class AI:
             neighbors = [('E',position - 1),('N', position - 7)]    
         elif position %7 == 0 :
             neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7)]   
-        elif position + 1 %7 == 0 :
+        elif (position + 1) %7 == 0 :
             neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1)]
         else :
             neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
@@ -508,7 +492,7 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 
 
 
-#player3 = AI(boardTest)
+#player3 = AI(board)
 #print(player3.play("state"))
 
 
