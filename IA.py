@@ -29,13 +29,16 @@ class ServerAI:
     AI = None
     
 
-    def __init__(self, game_server, server_AI_port, server_AI_adress, player_name, player_matricule):
+    def __init__(self, game_server, server_AI_port, server_AI_adress, player_name, player_matricule, random):
         self.game_server = game_server #('localhost', 3000)
         self.server_AI_port = server_AI_port
         self.server_AI_adress = server_AI_adress
         self.player_name = player_name
         self.player_matricule = player_matricule
-        self.AI = RandomAI()
+        if random:
+            self.AI = RandomAI()
+        else:
+            self.AI = AI("")
 
         
     def send_subscribe_request_to_server(self):
@@ -57,6 +60,8 @@ class ServerAI:
         return request
     
     def convert_to_dict(self, jsonFile):
+        if len(jsonFile) == 0:
+            return {'request': 'Empty'}
         data = json.loads(jsonFile)
         return data
     
@@ -70,20 +75,45 @@ class ServerAI:
             sent = connection.send(response[total:])
             total += sent
         logging.info("Player %s: response send to %s", self.player_name, self.game_server)    
-    
+    """
+    def get_response(self,connection): 
+        chunks = []
+        finished = False
+        
+        while not finished:
+            data = connection.recv(1024)
+            chunks.append(data)
+            
+            try:
+                json_text = json.loads(b''.join(chunks).decode() )
+                finished = True
+            except:
+                # json invalide, on continue
+                pass
+            print(json_text)
+        return json_text 
+    """    
     def get_response(self,connection):
         connection.settimeout(0.1)
-        chunks = []
+        chunks = b''
+        json_text = ""
         finished = False
         while not finished:
             try:
-                data = connection.recv(4096)
-                chunks.append(data)
-                finished = data == b''
+                data = connection.recv(1024)
+                chunks += data
+                try:
+                    json_text = json.loads(chunks.decode())
+                    finished = True
+                except:
+                    # json invalide, on continue
+                    pass
             except socket.timeout:
-                break
-        return b''.join(chunks).decode() 
-
+                if json_text != "":
+                    break
+                
+        return json_text
+    
     def get_move_response(self, AI_move):
          response = json.dumps({"response": "move", "move": AI_move, "message": "i will win"}).encode()
          return response
@@ -94,17 +124,23 @@ class ServerAI:
         s2.bind((self.server_AI_adress, self.server_AI_port))
         s2.listen()
         logging.info("Player %s: listening on port %s", self.player_name, self.server_AI_port)
+        
     
         while True:
                 con, addr = s2.accept()
                 #d = con.recv(4096).decode()
                 d = self.get_response(con)
-                request = self.convert_to_dict(d)
+                #request = self.convert_to_dict(d)
+                if len(d)==0:
+                    request = {'request': 'Empty'}
+                else:
+                    request = d
                 logging.info("Player %s: got request %s", self.player_name, request["request"])
                 if request["request"] == "ping":
                     response = self.get_ping_response()
                     self.send_response(con, response)
                 elif request["request"] == "play":
+                    print(self.player_name, request["errors"])
                     AI_move = self.AI.play(request["state"])
                     response = self.get_move_response(AI_move)
                     #print("Ai move = ",AI_move)
@@ -132,7 +168,9 @@ class RandomAI:
         gates = self.not_affecting_random_gates(self.move_to_play, self.position)
         self.gate_to_play = gates[random.randint(0,len(gates)-1)] 
         self.tile_to_play = state["tile"]
-        return self.create_server_response()
+        res = self.create_server_response()
+        print(res)
+        return res
 
     def create_server_response(self):
         response = {
@@ -234,24 +272,25 @@ class RandomAI:
         for key, value in dico.items():
             if destination_position not in value and current_position not in value:
                 gates.append(key)
-        return gates       
-
+        return gates      
 
 
 class AI:
     board = None
-    position = 40
-    target = 10
+    position = 32
+    target = 4
     achievable_positions = None
     path_to_target = None
     tile = None
     move_to_play = None
     gate_to_play = None
     tile_to_play = None
+    score = 0
 
 
     def __init__(self, board):
-        self.board = board
+        #self.board = board
+        pass
 
     def play(self, state):
         self.set_game_state(state)
@@ -264,15 +303,24 @@ class AI:
                 self.gate_to_play = gates[random.randint(0,len(gates)-1)]
             else:
                 self.move_to_play = self.get_random_move()
-                gates = self.not_affecting_random_gates([self.move_to_play])
+                gates = self.not_affecting_random_gates([self.position, self.move_to_play])
                 self.gate_to_play = gates[random.randint(0,len(gates)-1)]
         else:
             self.move_to_play = self.get_random_move()
-            gates = self.not_affecting_random_gates([self.move_to_play])
+            gates = self.not_affecting_random_gates([self.position, self.move_to_play])
             self.gate_to_play = gates[random.randint(0,len(gates)-1)]
         
         self.tile_to_play = self.tile
-        return self.create_server_response()
+        res = self.create_server_response()
+        #print(res)
+        if self.move_to_play == self.target:
+            self.score+=1
+        print("AI Score: ", self.score)
+        print("position: ", self.position)
+        print("target: ", self.target)
+        print("path to target: ", self.path_to_target)
+        print("board :", self.board)
+        return res
 
         
     def set_game_state(self, state):
@@ -306,35 +354,13 @@ class AI:
                 possible_moves.append(info[1])     
         return possible_moves
     
-    def get_neighbors(self, position):
-        neighbors = []
-        if position == 0 :
-            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
-        elif position > 0 and position < 6 :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
-        elif position > 42 and position < 48 :
-            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
-        elif position == 6 :
-            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
-        elif position == 42 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
-        elif position == 48:
-            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
-        elif position %7 == 0 :
-            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
-        elif (position + 1) %7 == 0 :
-            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
-        else :
-            neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]   
-        return neighbors
-
     def available_neighbors(self,neighbors, exit_directions):
         available_neighbors = []
         for neighbor in neighbors:
             if neighbor[0] in exit_directions:                     
-                available_neighbors.append(neighbor)
+                available_neighbors.append(neighbor)      
+        return available_neighbors
 
-        return available_neighbors 
 
     def get_opposite_direction(self,direction):
         if direction == "N":
@@ -435,7 +461,28 @@ class AI:
         return self.position
 
 
-
+    def get_neighbors(self, position):
+        neighbors = []
+        if position == 0 :
+            neighbors = [('E',position + 1), ('S',position + 7), ('N', position + 42), ('W', position + 6)]        
+        elif position > 0 and position < 6 :
+            neighbors = [('E',position + 1), ('W',position - 1), ('S', position + 7), ('N', position + 42)]
+        elif position > 42 and position < 48 :
+            neighbors = [('W',position - 1), ('E',position + 1), ('N',position - 7), ('S', position - 42)]
+        elif position == 6 :
+            neighbors = [('W',position - 1), ('S',position + 7), ('N', position + 42), ('E', position - 6)]
+        elif position == 42 :
+            neighbors = [('E',position + 1), ('N',position - 7), ('S', position - 42), ('W', position + 6)]
+        elif position == 48:
+            neighbors = [('W',position - 1),('N', position - 7), ('S', position - 42), ('E', position - 6)]    
+        elif position %7 == 0 :
+            neighbors = [('E',position + 1), ('N',position - 7), ('S',position + 7), ('W', position + 6)]   
+        elif (position + 1) %7 == 0 :
+            neighbors = [('N',position - 7), ('S',position + 7), ('W',position -1), ('E', position - 6)]
+        else :
+            neighbors = [('E',position + 1), ('W',position - 1), ('S',position + 7), ('N',position - 7)]
+        
+        return neighbors
 
 
 
@@ -460,14 +507,24 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
 
+boardTest = [
+    {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 0}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 1}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None},
+    {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': 13}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 20}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': 12}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 19},
+    {'N': True, 'E': True, 'S': True, 'W': False, 'item': 2}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 3}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 4}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 5}, 
+    {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 16}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 22}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 14}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None},
+    {'N': True, 'E': True, 'S': True, 'W': False, 'item': 6}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 7}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 8}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 9}, 
+    {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 23}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 15}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 17}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, 
+    {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 10}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 18}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 11}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}]
 
-player3 = AI(board)
-print(player3.play("state"))
 
-'''
-player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", 20053)
-player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", 0000)
-thread = threading.Thread(target=player1.run_server_AI, daemon=True)
+
+
+#player3 = AI(boardTest)
+#print(player3.play("state"))
+
+
+player1 = ServerAI(("localhost", 3000), 8888, "localhost", "samir", "20053", False)
+player2 = ServerAI(("localhost", 3000), 8889, "localhost", "ammar", "0000", False)
+thread = threading.Thread(target=player2.run_server_AI, daemon=True)
 thread.start()
-player2.run_server_AI()
-'''
+player1.run_server_AI()
