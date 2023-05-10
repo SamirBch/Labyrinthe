@@ -8,6 +8,7 @@ Il y a ensuite les différents tests unitaires contenus dans les fichiers nommé
 
 Et enfin il y a le fichier "IA" qui contient tout le code permettant de concevoir l'intelligence artificielle. Celui-ci est divisé en 3 parties ou plutôt en 3 classes.
 
+
 ## Le code
 
 Premièrement la classe "ServerAI" qui contient toutes les fonctions permettant de communiquer avec le serveur du jeu. Elle permet de recevoir des requêtes et d'y répondre instantanément pour que ce dernier puisse lancer le jeu et qu'il sache quelle coup notre IA veut jouer.
