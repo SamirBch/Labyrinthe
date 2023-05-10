@@ -141,7 +141,7 @@ class RandomAI:
     tile_to_play = None
 
 
-    def play(self, state):      #lance le randomIA
+    def play(self, state):      #lance le randomIA et créer une réponse au serveur
         self.set_game_state(state)
         possible_moves = self.possible_path()
         if len(possible_moves) > 0:
@@ -274,7 +274,7 @@ class AI:
         #self.board = board
         pass
 
-    def play(self, state):
+    def play(self, state): #créer réponse du coup pour server
         self.set_game_state(state)
         self.achievable_positions = self.BFS(self.position, self.target)
         if self.is_target_found():
@@ -297,12 +297,12 @@ class AI:
         #print(res)
         if self.move_to_play == self.target:
             self.score+=1
-        print("AI Score: ", self.score)
-        print("position: ", self.position)
-        print("target: ", self.target)
-        print("path to target: ", self.path_to_target)
-        print("board :", self.board)
-        print("achievable :", self.achievable_positions)
+        #print("AI Score: ", self.score)
+        #print("position: ", self.position)
+        #print("target: ", self.target)
+        #print("path to target: ", self.path_to_target)
+        #print("board :", self.board)
+        #print("achievable :", self.achievable_positions)
         return res
 
         
