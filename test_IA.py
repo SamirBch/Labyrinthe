@@ -166,3 +166,12 @@ def test_possible_path():
     assert ia.possible_path(0) == [1]
     assert ia.possible_path(7) == [14]
 
+def test_play():
+    ia = AI("")
+    play = ia.play(test_state)
+    assert 'tile' in play
+    assert 'gate' in play
+    assert 'new_position' in play
+    assert type(play["tile"]) == dict
+    assert type(play["gate"]) == str
+    assert type(play["new_position"]) == int

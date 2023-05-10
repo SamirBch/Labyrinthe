@@ -2,7 +2,7 @@ import random, json, socket, logging
 
 logging.basicConfig(level=logging.INFO)
 
-class Queue:
+class Queue:                #Sert à utiliser le BFS par la suite
     def __init__(self):
         self.data = []
 
@@ -20,7 +20,7 @@ class Queue:
         
 
 
-class ServerAI:
+class ServerAI:  #gere la connexion au serveur du jeu
     game_server = None
     server_AI_port = None
     server_AI_adress = None
@@ -98,7 +98,7 @@ class ServerAI:
         return json_text
     
     def get_move_response(self, AI_move):
-         response = json.dumps({"response": "move", "move": AI_move, "message": "i will win"}).encode()
+         response = json.dumps({"response": "move", "move": AI_move, "message": "easy"}).encode()
          return response
 
     def run_server_AI(self):
@@ -141,7 +141,7 @@ class RandomAI:
     tile_to_play = None
 
 
-    def play(self, state):
+    def play(self, state):      #lance le randomIA
         self.set_game_state(state)
         possible_moves = self.possible_path()
         if len(possible_moves) > 0:
@@ -172,7 +172,7 @@ class RandomAI:
         self.tile = state["tile"]
 
     
-    def get_neighbors(self, position):
+    def get_neighbors(self, position):  #Renvoie les voisins en fonction de la position
         neighbors = []
         if position == 0 :
             neighbors = [('E',position + 1), ('S',position + 7)]        
@@ -204,7 +204,7 @@ class RandomAI:
 
         return available_neighbors        
 
-    def possible_path(self):
+    def possible_path(self):  #renvoie les chemins dispos
         tuile = self.board[self.position]
         exits = self.exit_gate(tuile)
    
@@ -230,7 +230,7 @@ class RandomAI:
         return exits           
 
 
-    def get_opposite_direction(self,direction):
+    def get_opposite_direction(self,direction):  #permet de tcheker par la suite si il y a un mur chez le voisin
         if direction == "N":
             return "S"
         elif direction == "S":
@@ -241,7 +241,7 @@ class RandomAI:
             return "E"
 
 
-    def not_affecting_random_gates(self,destination_position, current_position):
+    def not_affecting_random_gates(self,destination_position, current_position):  #la tuile que l'on pose n'influence pas notre chemin
         dico = {
             "A" : [1, 8, 15, 22 , 29, 36, 43],
             "B" : [3, 10, 17, 24, 31, 38, 45],
@@ -259,8 +259,8 @@ class RandomAI:
 
 class AI:
     board = None
-    position = 32
-    target = 4
+    position = None                       
+    target = None
     achievable_positions = None
     path_to_target = None
     tile = None
@@ -362,7 +362,7 @@ class AI:
                 exits.append(direction)
         return exits
 
-    def BFS(self, start_position, target):
+    def BFS(self, start_position, target):  #parcours en largeur les chemins qui mènent au target
         agenda = Queue()
         achievable_positions  = []
         agenda.enqueue(start_position)
@@ -468,7 +468,7 @@ class AI:
         return neighbors
 
    
-
+#board du git pour mieux visualiser lors des tests
 board = [{"N": False, "E": True, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 0}, {"N": False, "E": True, "S": True, "W": False, "item": 14}, {"N": False, "E": True, "S": True, "W": True, "item": 1}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None},
         {"N": False, "E": False, "S": True, "W": True, "item": 15}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None},
         {"N": True, "E": True, "S": True, "W": False, "item": 2}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 3}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": False, "E": True, "S": True, "W": True, "item": 4}, {"N": False, "E": True, "S": True, "W": True, "item": 23}, {"N": True, "E": False, "S": True, "W": True, "item": 5},

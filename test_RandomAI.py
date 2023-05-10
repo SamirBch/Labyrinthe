@@ -19,13 +19,22 @@ False, "W": True, "item": 20}, {"N": True, "E": False, "S": True, "W": True,
 "item": 9}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": False, "S": False, "W": True, "item": None}, {"N": False, "E": True, "S": False, "W": True, "item": None}, {"N": False, "E": False, "S": True, "W": True, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": False, "item": 15}, {"N": True, "E": True, "S": False, "W": False, "item": None}, {"N": True, "E": True, "S": True, "W": False, "item": 22}, {"N": True, "E": True, "S": False, "W": True, "item": 10}, {"N": True, "E": False, "S": True, "W": False, "item": None}, {"N": True, "E": True, "S": False, "W": True, "item": 11}, {"N": False, "E": True, "S": True, "W": True, "item": 19}, {"N": True, "E": False, "S": False, "W": True, "item": None}], "tile": {"N": True, "E": False, "S": True, "W": False, "item": None}, "target": 17, "remaining": [4, 4]}
 
 
+def test_play():
+    ia = RandomAI()
+    play = ia.play(test_state)
+    assert 'tile' in play
+    assert 'gate' in play
+    assert 'new_position' in play
+    assert type(play["tile"]) == dict
+    assert type(play["gate"]) == str
+    assert type(play["new_position"]) == int
 
 def test_create_server_response():
     ia = RandomAI() 
-    ia.tile_to_play = ["N", "S"]
+    ia.tile_to_play =  {"N": True, "E": True, "S": False, "W": False, "item": None}
     ia.gate_to_play = "L" 
     ia.move_to_play = 42
-    expected_response = {"tile": ["N", "S"], "gate": "L", "new_position": 42}
+    expected_response = {"tile":  {"N": True, "E": True, "S": False, "W": False, "item": None}, "gate": "L", "new_position": 42}
     assert ia.create_server_response() == expected_response
 
 
@@ -107,3 +116,13 @@ def test_not_affecting_random_gates():
     result = ia.not_affecting_random_gates(current, destination)
     assert result == ['C', 'K', 'J']
   
+
+def test_possible_path():
+    ia = RandomAI()
+    ia.position = 9
+    ia.board = test_board
+    assert ia.possible_path() == [8, 2]
+    ia.position = 0
+    assert ia.possible_path() == [1]
+    ia.position = 7
+    assert ia.possible_path() == [14]  
