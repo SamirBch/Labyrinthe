@@ -1,4 +1,4 @@
-# Labyrinthe
+# Labyrinthe (20053 & 22037)
 
 Le projet est constitué de plusieurs fichiers ayant chacun sa propre fonction.
 
