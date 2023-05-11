@@ -98,7 +98,7 @@ class ServerAI:  #gere la connexion au serveur du jeu
         return json_text
     
     def get_move_response(self, AI_move):
-         response = json.dumps({"response": "move", "move": AI_move, "message": "easy"}).encode()
+         response = json.dumps({"response": "move", "move": AI_move, "message": "SIUUUUUUUUUU"}).encode()
          return response
 
     def run_server_AI(self):
